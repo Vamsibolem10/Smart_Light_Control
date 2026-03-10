@@ -1,0 +1,95 @@
+<script>
+
+let countdownInterval=null;
+
+let startTime=null;
+let endTime=null;
+
+
+// COUNTDOWN + PROGRESS
+function startCountdown(offTime)
+{
+    clearInterval(countdownInterval);
+
+    startTime=new Date();
+
+    endTime=new Date(offTime);
+
+    countdownInterval=setInterval(()=>{
+
+        const now=new Date();
+
+        const diff=endTime-now;
+
+        if(diff<=0)
+        {
+            document.getElementById("countdown").innerText="Completed";
+
+            document.getElementById("progressBar").style.width="100%";
+
+            clearInterval(countdownInterval);
+
+            return;
+        }
+
+        const hrs=Math.floor(diff/3600000);
+
+        const mins=Math.floor((diff%3600000)/60000);
+
+        const secs=Math.floor((diff%60000)/1000);
+
+        document.getElementById("countdown").innerText=
+        `${hrs}h ${mins}m ${secs}s remaining`;
+
+        const total=endTime-startTime;
+
+        const done=now-startTime;
+
+        const percent=(done/total)*100;
+
+        document.getElementById("progressBar").style.width=percent+"%";
+
+    },1000);
+}
+
+
+// LIVE ESP32 SYNC
+async function syncESP32()
+{
+    try
+    {
+        const res=await fetch("/status");
+
+        const data=await res.json();
+
+        const indicator=document.getElementById("status-indicator");
+
+        const text=document.getElementById("status-text");
+
+        if(data.status=="on")
+        {
+            indicator.className="status-dot bg-green-500";
+
+            text.innerText="Device is ON";
+        }
+
+        else if(data.status=="off")
+        {
+            indicator.className="status-dot bg-red-500";
+
+            text.innerText="Device is OFF";
+        }
+
+        else
+        {
+            indicator.className="status-dot bg-gray-400";
+
+            text.innerText="Offline";
+        }
+    }
+    catch{}
+}
+
+setInterval(syncESP32,1000);
+
+</script>
